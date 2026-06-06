@@ -4,20 +4,24 @@ import org.digitalwallet.model.DigitalWallet;
 
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class InMemoryWalletDb implements WalletDb {
     ConcurrentHashMap<String, DigitalWallet> wallets;
     ConcurrentHashMap<String, Object> walletLocks;
+    ConcurrentHashMap<String, ReentrantLock> walletReentrantLocks;
 
     public InMemoryWalletDb() {
         this.wallets = new ConcurrentHashMap<>();
         this.walletLocks = new ConcurrentHashMap<>();
+        this.walletReentrantLocks = new ConcurrentHashMap<>();
     }
 
     @Override
     public DigitalWallet createWallet(DigitalWallet digitalWallet) {
         wallets.put(digitalWallet.getUserId(), digitalWallet);
         walletLocks.put(digitalWallet.getWalletId(), new Object());
+        walletReentrantLocks.put(digitalWallet.getWalletId(), new ReentrantLock());
         return digitalWallet;
     }
 
@@ -34,5 +38,15 @@ public class InMemoryWalletDb implements WalletDb {
     @Override
     public Object getWalletLock(String walletId) {
         return walletLocks.get(walletId);
+    }
+
+    @Override
+    public ReentrantLock getReentrantWalletLock(String walletId) {
+        return walletReentrantLocks.get(walletId);
+    }
+
+    @Override
+    public void updateWallet(DigitalWallet wallet, String userId) {
+        wallets.put(userId, wallet);
     }
 }
